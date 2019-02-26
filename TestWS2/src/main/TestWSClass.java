@@ -2,7 +2,9 @@ package main;
 
 import helper.Constants;
 import helper.HashingMD5;
+import sun.misc.BASE64Decoder;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,10 +15,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import beans.Employee;
@@ -107,5 +114,88 @@ public class TestWSClass {
     public String getEmployee(@PathParam("employeeid")String employeeId){
 		return "web service called successfully ....";    
     }
+	
+	@GET
+    @Path("/sample1")
+	@Produces("application/json")
+    public String Sample1(@PathParam("employeeid")String employeeId){
+		
+		String jsonString = "{\"sampleJson\":\"12345\"}";
+		
+		return jsonString;    
+    }
+	
+	
+	
+	
+    @POST
+    @Path("/sampleAuth")
+	@Produces("application/json")
+    //@Produces(MediaType.APPLICATION_JSON)
+    @Consumes("application/json")
+    public String Sample2(@HeaderParam("authorization") String authString){
+    	
+    	String jsonString ="";
+    	
+    	//System.out.println(username +" "+ password);
+    	System.out.println(authString);
+    	
+    	if(isUserAuthenticated(authString)){
+            return "{\"Success\":\"User authenticated\"}";
+        }
+		
+    	else{
+    		
+    		jsonString = "{\"error\":\"Auth error\"}";
+    	}
+		
+		return jsonString;    
+    }
+    
+    private boolean isUserAuthenticated(String authString){
+        
+        String decodedAuth = "";
+        // Header is in the format "Basic 5tyc0uiDat4"
+        // We need to extract data before decoding it back to original string
+        String[] authParts = authString.split("\\s+");
+        String authInfo = authParts[1];
+        System.out.println(authInfo);
+        // Decode the data back to original string
+        byte[] bytes = null;
+        try {
+            bytes = new BASE64Decoder().decodeBuffer(authInfo);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        decodedAuth = new String(bytes);
+        System.out.println("decoded string = "+decodedAuth);
+         
+        /**
+         * here you include your logic to validate user authentication.
+         * it can be using ldap, or token exchange mechanism or your 
+         * custom authentication mechanism.
+         */
+        String authTokens[] = decodedAuth.split(":");
+        if(authTokens[0].equals("atal") && authTokens[1].equals("atal")){
+        	return true;
+        }
+        else{
+        	return false;
+        }
+        
+        
+    }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 }
